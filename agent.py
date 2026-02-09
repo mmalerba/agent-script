@@ -63,6 +63,9 @@ def cmd_run(args):
     # Check if new flag is set (either global or local)
     new_branch = args.new or getattr(args, 'new_global', False)
     branch = args.branch
+    
+    # Resolve command (local takes precedence over global)
+    agent_command = getattr(args, 'agent_command_local', None) or getattr(args, 'agent_command_global', "gemini --yolo")
 
     # Resolve branch name if implicit (only if not creating new)
     if not new_branch and not branch:
@@ -141,7 +144,7 @@ def cmd_run(args):
             sys.exit(1)
         
         # Send the gemini command
-        run_command(f"tmux send-keys -t {session_name} 'gemini --yolo' C-m")
+        run_command(f"tmux send-keys -t {session_name} '{agent_command}' C-m")
 
     # 3. Attach
     # Check if we are inside tmux already
@@ -236,13 +239,16 @@ def main():
     parser.add_argument("-n", "--new", dest="new_global", action="store_true", help="Create new branch")
     # Add global force flag
     parser.add_argument("-f", "--force", dest="force_global", action="store_true", help="Force operation")
+    # Add agent command flag
+    parser.add_argument("-c", "--command", dest="agent_command_global", default="gemini --yolo", help="Command to start the agent")
 
-    subparsers = parser.add_subparsers(dest="command")
+    subparsers = parser.add_subparsers(dest="subcommand")
 
     # RUN command
     p_run = subparsers.add_parser("run", help="Create or attach to an agent")
     p_run.add_argument("branch", nargs="?", help="Branch name (defaults to current)")
     p_run.add_argument("-n", "--new", dest="new", action="store_true", help="Create new branch")
+    p_run.add_argument("-c", "--command", dest="agent_command_local", help="Command to start the agent")
     p_run.set_defaults(func=cmd_run)
 
     # LS command
@@ -256,7 +262,7 @@ def main():
     p_kill.set_defaults(func=cmd_kill)
 
     args = parser.parse_args()
-    if args.command is None:
+    if args.subcommand is None:
         args.func = cmd_run
         args.branch = None
         args.new = False
