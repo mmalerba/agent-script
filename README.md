@@ -19,6 +19,20 @@ chmod +x agent.py
 ln -s $(pwd)/agent.py /usr/local/bin/agent
 ```
 
+## Shell Completions
+
+### Zsh
+
+The repository includes a Zsh completion script in the `_agent` file. To enable it, add the directory containing the script to your `fpath` and initialize completions in your `~/.zshrc`:
+
+```zsh
+# Add the directory containing the _agent file to fpath
+fpath=(/path/to/agent-script $fpath)
+
+# Initialize completions
+autoload -Uz compinit && compinit
+```
+
 ## Usage
 
 ### Run an Agent

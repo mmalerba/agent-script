@@ -1,0 +1,54 @@
+#compdef agent.py
+
+_agent() {
+    local context state state_descr line
+    typeset -A opt_args
+
+    _arguments -C \
+        '(-n --new)'{-n,--new}'[Create new branch]' \
+        '(-f --force)'{-f,--force}'[Force operation]' \
+        '(-c --command)'{-c,--command}'[Command to start the agent]:command' \
+        '1: :_agent_commands' \
+        '*:: :->args'
+
+    case $state in
+        args)
+            case $line[1] in
+                run)
+                    _arguments \
+                        '(-n --new)'{-n,--new}'[Create new branch]' \
+                        '(-c --command)'{-c,--command}'[Command to start the agent]:command' \
+                        '::branch:__agent_branches'
+                    ;;
+                kill)
+                    _arguments \
+                        '(-f --force)'{-f,--force}'[Force delete worktree]' \
+                        ':branch:__agent_branches'
+                    ;;
+                ls)
+                    _message "No arguments"
+                    ;;
+            esac
+            ;;
+    esac
+}
+
+_agent_commands() {
+    local -a commands
+    commands=(
+        'run:Create or attach to an agent'
+        'ls:List active agents'
+        'kill:Kill an agent session and worktree'
+    )
+    _describe -t commands 'command' commands
+}
+
+__agent_branches() {
+    local -a branches
+    if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        branches=(${(f)"$(git branch --format='%(refname:short)' 2>/dev/null)"})
+        _describe -t branches 'branch' branches
+    fi
+}
+
+_agent "$@"
