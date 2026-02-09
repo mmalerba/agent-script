@@ -127,7 +127,7 @@ def cmd_run(args):
             sys.exit(1)
         
         # Send the gemini command
-        run_command(f"tmux send-keys -t {session_name} 'gemini' C-m")
+        run_command(f"tmux send-keys -t {session_name} 'gemini --yolo' C-m")
 
     # 3. Attach
     # Check if we are inside tmux already
