@@ -158,7 +158,7 @@ def cmd_ls(args):
                 # We can't easily reverse sanitize (lossy), but for display we can just show the dir name
                 # or try to store metadata. For now, we use the dir name as the key.
                 agents.add(child.name)
-                worktrees[child.name] = True
+                worktrees[child.name] = str(child)
 
     # Gather potential agents from tmux sessions
     # Filter sessions starting with agent-{repo_name}-
@@ -172,18 +172,18 @@ def cmd_ls(args):
                 # extract safe branch name
                 safe_branch = sname[len(prefix):]
                 agents.add(safe_branch)
-                tmux_sessions[safe_branch] = True
+                tmux_sessions[safe_branch] = sname
 
     if not agents:
         print(f"No agents found for repo '{repo_name}'.")
         return
 
-    print(f"{'Branch/ID':<30} {'Worktree':<10} {'Tmux':<10}")
-    print("-" * 50)
+    print(f"{'Branch/ID':<30} {'Worktree':<60} {'Tmux':<30}")
+    print("-" * 120)
     for agent in sorted(agents):
-        has_wt = "YES" if worktrees.get(agent) else "NO"
-        has_tm = "YES" if tmux_sessions.get(agent) else "NO"
-        print(f"{agent:<30} {has_wt:<10} {has_tm:<10}")
+        wt_val = worktrees.get(agent, "NO")
+        tm_val = tmux_sessions.get(agent, "NO")
+        print(f"{agent:<30} {wt_val:<60} {tm_val:<30}")
 
 def cmd_kill(args):
     repo_root, repo_name = get_repo_context()
