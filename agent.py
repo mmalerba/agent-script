@@ -60,16 +60,36 @@ def get_worktree_base(repo_root, repo_name):
 def cmd_run(args):
     repo_root, repo_name = get_repo_context()
     
+    # Check if new flag is set (either global or local)
+    new_branch = args.new or getattr(args, 'new_global', False)
+    
     branch = args.branch
-    if not branch:
-        branch = get_current_branch()
+
+    if new_branch:
         if not branch:
-            print("Error: Could not determine current branch and none specified.")
+            print("Error: Branch name required when using -n/--new.")
+            sys.exit(1)
+        
+        if branch_exists(branch):
+            print(f"Error: Branch '{branch}' already exists.")
+            sys.exit(1)
+            
+        print(f"Creating branch '{branch}'...")
+        res = run_command(f"git branch {branch}", cwd=repo_root)
+        if res.returncode != 0:
+            print(f"Error creating branch: {res.stderr.strip()}")
             sys.exit(1)
 
-    if not branch_exists(branch):
-        print(f"Error: Branch '{branch}' does not exist.")
-        sys.exit(1)
+    else:
+        if not branch:
+            branch = get_current_branch()
+            if not branch:
+                print("Error: Could not determine current branch and none specified.")
+                sys.exit(1)
+
+        if not branch_exists(branch):
+            print(f"Error: Branch '{branch}' does not exist.")
+            sys.exit(1)
 
     safe_branch = sanitize_name(branch)
     worktree_base = get_worktree_base(repo_root, repo_name)
@@ -197,11 +217,15 @@ def cmd_kill(args):
 
 def main():
     parser = argparse.ArgumentParser(description="Agent management script.")
+    # Add global create flag
+    parser.add_argument("-n", "--new", dest="new_global", action="store_true", help="Create new branch")
+
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     # RUN command
     p_run = subparsers.add_parser("run", help="Create or attach to an agent")
     p_run.add_argument("branch", nargs="?", help="Branch name (defaults to current)")
+    p_run.add_argument("-n", "--new", dest="new", action="store_true", help="Create new branch")
     p_run.set_defaults(func=cmd_run)
 
     # LS command

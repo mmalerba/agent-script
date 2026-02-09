@@ -15,6 +15,9 @@ agent script:
   - if yes attach
   - log wether reusing or creating new
 
+options:
+-n/--new create a new branch
+
 `agent ls`
 
 - list current agents, for each show:
