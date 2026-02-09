@@ -54,8 +54,8 @@ def get_repo_context():
 
 def get_worktree_base(repo_root, repo_name):
     """Returns the base directory for this repo's agent worktrees."""
-    # Sibling directory to the repo root
-    return repo_root.parent / f"{repo_name}_agent_worktrees"
+    # ~/.agent/<repo>/
+    return Path.home() / ".agent" / repo_name
 
 def cmd_run(args):
     repo_root, repo_name = get_repo_context()
