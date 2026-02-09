@@ -62,8 +62,18 @@ def cmd_run(args):
     
     # Check if new flag is set (either global or local)
     new_branch = args.new or getattr(args, 'new_global', False)
-    
     branch = args.branch
+
+    # Resolve branch name if implicit (only if not creating new)
+    if not new_branch and not branch:
+        branch = get_current_branch()
+        if not branch:
+            print("Error: Could not determine current branch and none specified.")
+            sys.exit(1)
+
+    if branch == "main":
+        print("Error: Agents cannot run on 'main' branch.")
+        sys.exit(1)
 
     if new_branch:
         if not branch:
@@ -81,15 +91,19 @@ def cmd_run(args):
             sys.exit(1)
 
     else:
-        if not branch:
-            branch = get_current_branch()
-            if not branch:
-                print("Error: Could not determine current branch and none specified.")
-                sys.exit(1)
-
         if not branch_exists(branch):
             print(f"Error: Branch '{branch}' does not exist.")
             sys.exit(1)
+
+        # If the target branch is currently checked out, we must switch away from it
+        # so we can create a worktree for it.
+        current_branch = get_current_branch()
+        if current_branch == branch:
+            print(f"Branch '{branch}' is currently checked out. Switching to 'main'...")
+            res = run_command("git checkout main", cwd=repo_root)
+            if res.returncode != 0:
+                print(f"Error checking out main: {res.stderr.strip()}")
+                sys.exit(1)
 
     safe_branch = sanitize_name(branch)
     worktree_base = get_worktree_base(repo_root, repo_name)
