@@ -203,6 +203,7 @@ def cmd_kill(args):
     repo_root, repo_name = get_repo_context()
     branch = args.branch
     safe_branch = sanitize_name(branch)
+    force = args.force or getattr(args, 'force_global', False)
     
     # Clean up Tmux
     session_name = f"agent-{repo_name}-{safe_branch}"
@@ -219,7 +220,7 @@ def cmd_kill(args):
     
     if worktree_path.exists():
         # Use git worktree remove
-        cmd = f"git worktree remove {worktree_path}"
+        cmd = f"git worktree remove {'--force ' if force else ''}{worktree_path}"
         res = run_command(cmd, cwd=repo_root)
         if res.returncode == 0:
             print(f"Removed worktree at {worktree_path}.")
@@ -233,6 +234,8 @@ def main():
     parser = argparse.ArgumentParser(description="Agent management script.")
     # Add global create flag
     parser.add_argument("-n", "--new", dest="new_global", action="store_true", help="Create new branch")
+    # Add global force flag
+    parser.add_argument("-f", "--force", dest="force_global", action="store_true", help="Force operation")
 
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -249,6 +252,7 @@ def main():
     # KILL command
     p_kill = subparsers.add_parser("kill", help="Kill an agent's session and worktree")
     p_kill.add_argument("branch", help="Branch name to kill")
+    p_kill.add_argument("-f", "--force", dest="force", action="store_true", help="Force delete worktree")
     p_kill.set_defaults(func=cmd_kill)
 
     args = parser.parse_args()
