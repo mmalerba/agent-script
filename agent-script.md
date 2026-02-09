@@ -28,3 +28,7 @@ options:
 `agent kill <branch>`
 
 - kills the tmux session and worktree associated with the given branch
+
+`agent`
+
+- shorthand for `agent run <current-branch>`

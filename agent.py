@@ -237,7 +237,7 @@ def main():
     # Add global force flag
     parser.add_argument("-f", "--force", dest="force_global", action="store_true", help="Force operation")
 
-    subparsers = parser.add_subparsers(dest="command", required=True)
+    subparsers = parser.add_subparsers(dest="command")
 
     # RUN command
     p_run = subparsers.add_parser("run", help="Create or attach to an agent")
@@ -256,6 +256,11 @@ def main():
     p_kill.set_defaults(func=cmd_kill)
 
     args = parser.parse_args()
+    if args.command is None:
+        args.func = cmd_run
+        args.branch = None
+        args.new = False
+
     args.func(args)
 
 if __name__ == "__main__":
